@@ -1,9 +1,22 @@
+import { ClerkProvider } from "@clerk/nextjs";
+import type { Metadata } from "next";
 import "./globals.css";
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export const metadata: Metadata = {
+  title: "Local RAG",
+  description: "RAG application",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en">
-      <body className="min-h-full flex flex-col">{children}</body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body>{children}</body>
+      </html>
+    </ClerkProvider>
   );
 }

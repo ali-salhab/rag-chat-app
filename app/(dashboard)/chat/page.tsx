@@ -123,20 +123,8 @@ export default function ChatPage() {
   };
 
   return (
-    <main className="flex flex-col h-dvh   text-white">
-      <header
-        className={`shrink-0 overflow-hidden border-b-2 border-zinc-800 bg-amber-400 transition-all duration-300 ease-in-out ${
-          isHeaderHidden
-            ? "max-h-0 -translate-x-full border-transparent opacity-0"
-            : "max-h-24 translate-x-0 opacity-100"
-        }`}
-      >
-        <div className="mx-auto max-w-3xl p-2">
-          <h1 className="text-lg font-semibold">Local RAG Chat</h1>
-          <p className="text-sm text-zinc-600">Ollama + LangChain</p>
-        </div>
-      </header>
-
+    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-amber-900 text-white">
+      {" "}
       <section
         ref={messagesContainerRef}
         className="mx-auto     flex w-full max-w-3xl flex-1 flex-col gap-4 overflow-y-auto px-2"
@@ -161,7 +149,6 @@ export default function ChatPage() {
           </div>
         ))}
       </section>
-
       <form
         onSubmit={handleSubmit}
         className="border-t shrink-0  border-zinc-800 p-4"
