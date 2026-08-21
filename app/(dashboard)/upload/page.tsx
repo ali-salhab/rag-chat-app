@@ -4,7 +4,8 @@ import { ChangeEvent, useState } from "react";
 
 export default function UploadPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
+  const [isUploading, setIsUploading] = useState(false);
+  const [resultMessage, setResultMessage] = useState("");
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
@@ -12,7 +13,41 @@ export default function UploadPage() {
 
     setSelectedFile(file);
   };
+  const handleAddToRag = async () => {
+    if (!selectedFile || isUploading) return;
 
+    setIsUploading(true);
+    setResultMessage("");
+
+    try {
+      const formData = new FormData();
+
+      formData.append("file", selectedFile);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Upload failed");
+      }
+
+      setResultMessage(
+        `${data.fileName} is ready. ${data.chunksCreated} chunks were added to RAG.`,
+      );
+
+      setSelectedFile(null);
+    } catch (error) {
+      setResultMessage(
+        error instanceof Error ? error.message : "Upload failed",
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
   return (
     <main className="flex h-full min-h-0 flex-col overflow-hidden bg-amber-900 text-white">
       <div className="mx-auto w-full max-w-3xl">
@@ -51,10 +86,15 @@ export default function UploadPage() {
 
             <button
               type="button"
-              className="mt-4 rounded-lg bg-blue-600 px-4 py-2 font-medium hover:bg-blue-500"
+              onClick={handleAddToRag}
+              disabled={isUploading}
+              className="mt-4 rounded-lg bg-blue-600 px-4 py-2 font-medium disabled:opacity-50"
             >
-              Add to RAG
+              {isUploading ? "Adding to RAG..." : "Add to RAG"}
             </button>
+            {resultMessage && (
+              <p className="mt-4 text-sm text-zinc-300">{resultMessage}</p>
+            )}
           </div>
         )}
       </div>
