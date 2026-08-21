@@ -1,35 +1,52 @@
 import { chatModel } from "@/lib/chat-model";
 import { getRagContext } from "@/lib/rag";
+import { auth } from "@clerk/nextjs/server";
 
 export const POST = async (request: Request) => {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return new Response("Unauthorized", {
+      status: 401,
+    });
+  }
+
   const { message } = await request.json();
 
-  const { context } = await getRagContext(message);
-
+  const { context } = await getRagContext(message, userId);
   const prompt = `
-You are a helpful document assistant.
+أنت مساعد تجيب فقط من المعلومات الموجودة داخل السياق.
 
-Answer only using the context below.
+اتبع قاعدة واحدة فقط:
 
-If the answer is not available in the context, say:
-"I could not find that information in the uploaded files."
+1. إذا كان السياق يحتوي جواب السؤال:
+أعطِ الجواب فقط باللغة العربية.
+لا تقل أبدًا إنك لم تجد المعلومة.
 
-Context:
+2. إذا كان السياق لا يحتوي جواب السؤال:
+أجب بهذه الجملة فقط:
+"لم أجد هذه المعلومة في الملفات المرفوعة."
+
+لا تكتب الجواب الصحيح ثم تضيف جملة عدم العثور على المعلومة.
+لا تستخدم أي معرفة خارج السياق.
+
+<context>
 ${context}
+</context>
 
-User question:
+السؤال:
 ${message}
 `;
+
   const stream = await chatModel.stream(prompt);
+
   const encoder = new TextEncoder();
-  //   the encoder we take normal string and convert it to bytes so we can send it over the network
-  // here we define the stream
+
   const readableStream = new ReadableStream({
     async start(controller) {
-      // the controller controll all stream operations such as enqueue to send new chunk or close or error
       for await (const chunk of stream) {
         const text = typeof chunk.content === "string" ? chunk.content : "";
-        // this line will encode the text then send it to the browser as bytes
+
         controller.enqueue(encoder.encode(text));
       }
 

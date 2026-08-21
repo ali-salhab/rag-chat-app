@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 
 export const POST = async (request: Request) => {
   const { userId } = await auth();
-
+  console.log("userId", userId);
   if (!userId) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
